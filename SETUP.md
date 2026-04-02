@@ -1,9 +1,5 @@
 # Claude Code — Course Environment Setup Guide
 
-**Course:** [COURSE NAME / NUMBER]
-**Semester:** [SEMESTER & YEAR]
-**Last Updated:** April 2, 2026
-
 ---
 
 This guide walks you through every tool you need before the first lab session. Follow each section in order. If you get stuck, check the Troubleshooting block at the end of each section before asking for help.
