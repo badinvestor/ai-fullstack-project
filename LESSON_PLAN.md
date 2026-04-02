@@ -1,7 +1,6 @@
 # LESSON_PLAN.md
 
 ## Multi-Agent AI Development with Claude Code
-### Junior/Senior CS Elective — 2-Session Module (1 Hour Each)
 
 ---
 
