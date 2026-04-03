@@ -122,3 +122,54 @@ Show before and after code side by side.
 - Do not suggest adding features not in the original design
 - Flag any raw string interpolation in SQL queries (Exposed should prevent this)
 - If a section has no issues, write "No issues found." — do not omit the section
+
+---
+
+## GitHub Actions
+After writing REVIEW.md, perform the following actions using git and the `gh` CLI.
+Prerequisite: `gh auth status` must show an authenticated account.
+
+**Step 1 — Create the fix branch:**
+```bash
+git checkout -b fix/review-agent
+```
+
+**Step 2 — Apply every fix listed in ## Priority 1 and ## Priority 2.**
+Edit the actual source files. Make the exact changes you described in those sections.
+Do not change files not mentioned in Priority 1 or Priority 2.
+
+**Step 3 — Commit and push:**
+```bash
+git add -A
+git commit -m "fix: address Priority 1 and Priority 2 issues from code review"
+git push -u origin fix/review-agent
+```
+
+**Step 4 — Open a Pull Request. Use REVIEW.md as the PR body:**
+```bash
+PR_URL=$(gh pr create \
+  --title "Review Agent: Code Review Fixes" \
+  --body "$(cat REVIEW.md)" \
+  --base main \
+  --head fix/review-agent)
+echo "PR created: $PR_URL"
+```
+
+**Step 5 — Post one PR comment per Priority 1 issue:**
+For each issue in ## Priority 1, post a comment in this format:
+```bash
+gh pr comment "$PR_URL" --body "$(cat <<'EOF'
+**🔴 Priority 1 — <issue title>**
+
+**File:** <filename>
+**Problem:** <what is wrong>
+**Fix:** <exact change required>
+EOF
+)"
+```
+
+**Step 6 — Post one PR comment per Priority 2 issue:**
+Same format as above but use 🟡 Priority 2.
+
+**Important:** Do NOT merge the PR. The student must review the diff, read the comments,
+and approve + merge it themselves. The PR is the learning artifact.

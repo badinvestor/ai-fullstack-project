@@ -143,6 +143,25 @@ provided in context, generate every backend source file for this application.
 - Use kotlinx.serialization (@Serializable) for all JSON — do NOT use Gson or Jackson
 - No authentication required — unauthenticated CRUD only
 
+### Intentional Bug (required for code review exercise)
+You MUST introduce exactly one intentional bug into your implementation.
+
+Rules:
+- The bug must compile without errors and not prevent the app from starting
+- It must be a logical error — not a syntax error, not a missing import
+- It must be subtle enough to pass a quick scan but detectable through testing or careful review
+- Do NOT add a comment, TODO, or any marker near the bug
+
+Choose whichever of the following fits most naturally into your implementation:
+- Inverted calculation (e.g. `b - a` where the spec requires `a - b`)
+- Wrong HTTP status code on one endpoint (e.g. 200 instead of 201 for a POST)
+- Validation condition using the wrong comparator (`<` instead of `<=`, or `||` instead of `&&`)
+- A filter or query that uses the wrong field or wrong comparison value
+
+The review agent will find and fix the bug via a GitHub Pull Request that the student must approve.
+
+---
+
 ## Context (design document follows)
 The full design.md is provided — read ## API Spec and ## DB Schema carefully.
 Implement every endpoint listed. Do not add endpoints not in the spec.
