@@ -85,29 +85,42 @@ claude skill install skills/build-app.md
 | Fun / Creative | Movie/Book Wishlist · Recipe Box · Trivia Game Builder |
 
 **Step 4 — Run the pipeline (manual — recommended for learning)**
+
+Open Claude Code in your project folder, then send each prompt below in sequence.
+Each agent saves its output to a file before the next one starts.
+
 ```bash
-# Agent 01 — design
-claude -p "$(sed 's|{PROJECT_IDEA}|Habit Tracker|g' \
-  prompts/01_design_agent.md)" > design.md
-
-# Agent 02 — frontend
-claude -p "$(cat prompts/02_frontend_agent.md)" \
-  --context "$(cat design.md)" > frontend_output.md
-python3 scripts/extract_files.py frontend_output.md
-
-# Agent 03 — Kotlin backend
-claude -p "$(cat prompts/03_backend_agent.md)" \
-  --context "$(cat design.md)" > backend_output.md
-python3 scripts/extract_files.py backend_output.md
-
-# Agent 04 — review
-claude -p "$(cat prompts/04_review_agent.md)" \
-  --context "$(printf '# DESIGN\n'; cat design.md; \
-               printf '\n\n# FRONTEND\n'; cat frontend_output.md; \
-               printf '\n\n# BACKEND\n'; cat backend_output.md)" > REVIEW.md
+claude   # opens an interactive Claude Code session
 ```
 
-Or use the skill: `/build-app "habit tracker"`
+**Agent 01 — Design** *(paste this as your first message)*
+```
+Read prompts/01_design_agent.md, replace {PROJECT_IDEA} with "Habit Tracker",
+then act on those instructions and save your complete output to design.md.
+```
+
+**Agent 02 — Frontend** *(after design.md is saved)*
+```
+Read prompts/02_frontend_agent.md for your instructions and read design.md
+as your context. Follow the instructions and save your complete output to
+frontend_output.md. Then run: python3 scripts/extract_files.py frontend_output.md
+```
+
+**Agent 03 — Kotlin Backend** *(after design.md is saved)*
+```
+Read prompts/03_backend_agent.md for your instructions and read design.md
+as your context. Follow the instructions and save your complete output to
+backend_output.md. Then run: python3 scripts/extract_files.py backend_output.md
+```
+
+**Agent 04 — Review** *(after all three output files exist)*
+```
+Read prompts/04_review_agent.md for your instructions. Use design.md,
+frontend_output.md, and backend_output.md as your context. Follow the
+instructions and save your complete output to REVIEW.md.
+```
+
+Or automate everything with the skill: `/build-app "Habit Tracker"`
 
 **Step 5 — Run your app locally**
 ```bash

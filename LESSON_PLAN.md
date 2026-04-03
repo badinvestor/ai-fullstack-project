@@ -213,12 +213,18 @@ Some students will be indecisive; give a firm "pick in the next 60 seconds or I 
 mkdir ~/cs-agents/demo-project && cd ~/cs-agents/demo-project
 ```
 
-- Runs the design agent using "Recipe Box" as the demo project:
+- Opens Claude Code in the demo directory:
 
 ```bash
-claude -p "$(sed \
-  -e 's|{PROJECT_IDEA}|Recipe Box|g' \
-  ~/Documents/course-ai-agents/prompts/01_design_agent.md)" > design.md
+mkdir ~/cs-agents/demo-project && cd ~/cs-agents/demo-project
+claude
+```
+
+- Sends this prompt inside the Claude Code session:
+
+```
+Read prompts/01_design_agent.md, replace {PROJECT_IDEA} with "Recipe Box",
+then act on those instructions and save your complete output to design.md.
 ```
 
 - After completion, verifies all three sections:
@@ -231,11 +237,11 @@ grep "^## API Spec\|^## DB Schema\|^## Component Tree" design.md
 
 **What Students Do:**
 - Watch the demo and follow along in notes
-- Note the exact command structure: `-p` flag, `$(sed ...)` substitution, `>` redirect
+- Note that the prompt tells Claude exactly what file to read, what to substitute, and where to save — this is the pattern they will repeat for every agent
 - Write down one question about the output to ask during the exercise debrief
 
 **Facilitation Tips:**
-Always run `claude --version` in the demo terminal before class to confirm authentication — the most common demo failure is an auth error being captured in `design.md` instead of actual content. If the output is long, pause at each H2 section header and ask a student to read it aloud before continuing. Reassure students that the design is a starting point, not a contract — the review agent will catch any issues.
+Always run `claude --version` in the demo terminal before class to confirm authentication. The prompt-based approach means students type naturally inside Claude Code rather than constructing shell commands — lower syntax friction, same result. If the output is long, pause at each H2 section header and ask a student to read it aloud before continuing. Reassure students that the design is a starting point, not a contract — the review agent will catch any issues.
 
 **Transition:** You have seen how it works — now run the design agent on your own project.
 
@@ -248,31 +254,32 @@ Always run `claude --version` in the demo terminal before class to confirm authe
 **Learning Objective:** Successfully execute the design agent and produce a well-structured `design.md` for your chosen project.
 
 **What the Instructor Does:**
-- Posts the command on the projector (students substitute their own project name and backend):
+- Posts the steps on the projector:
 
 ```bash
-# Mac / Linux
-cd ~/cs-agents/my-project
-claude -p "$(sed \
-  -e 's|{PROJECT_IDEA}|Habit Tracker|g' \
-  ~/Documents/course-ai-agents/prompts/01_design_agent.md)" > design.md
+# 1. Create project folder and open Claude Code
+mkdir ~/cs-agents/my-project && cd ~/cs-agents/my-project
+claude
+```
 
-# Verify
-grep "^## API Spec\|^## DB Schema\|^## Component Tree" design.md
+```
+# 2. Inside Claude Code — paste this prompt (substitute your project name)
+Read prompts/01_design_agent.md, replace {PROJECT_IDEA} with "Habit Tracker",
+then act on those instructions and save your complete output to design.md.
+```
+
+```bash
+# 3. After Claude finishes — verify from terminal (! prefix runs in shell)
+! grep "^## API Spec\|^## DB Schema\|^## Component Tree" design.md
 ```
 
 - Circulates and checks students are in their project folder, not the demo folder
-- Watches for blank or error-only `design.md` output (auth issue)
+- Watches for blank or error-only `design.md` (auth issue)
 
 **What Students Do:**
-- Create their project directory and navigate to it:
-
-```bash
-mkdir ~/cs-agents/my-project && cd ~/cs-agents/my-project
-```
-
-- Run the command with their project name substituted
-- Run the grep verify command — it must print exactly three lines
+- Create their project directory and open Claude Code in it
+- Paste the prompt with their own project name substituted
+- Run the verify command — it must print exactly three lines
 
 **Facilitation Tips:**
 If a student's `design.md` is missing one of the three sections, re-run with the same prompt — the model is non-deterministic and a second run almost always completes. Students who finish early should read through their `design.md` and mark any endpoint or table they do not understand — the next block provides the interpretive framework.
@@ -420,42 +427,37 @@ Students with Make or shell pipeline experience will immediately grasp file-base
 **Learning Objective:** Observe the full frontend agent workflow from command to inspectable React source files.
 
 **What the Instructor Does:**
-- Runs the frontend agent on the demo project:
+- Opens Claude Code in the demo project (already open from Class 1, or re-open):
 
 ```bash
 cd ~/cs-agents/demo-project
-claude -p "$(cat ~/Documents/course-ai-agents/prompts/02_frontend_agent.md)" \
-  --context "$(cat design.md)" > frontend_output.md
+claude
 ```
 
-- While agent runs, explains `$(cat design.md)`: "Command substitution — the shell reads the file and injects its contents into the prompt. The agent receives the full design as context."
-- After completion, shows a peek at the raw output:
+- Sends this prompt inside the Claude Code session:
 
-```bash
-grep "// FILE:" frontend_output.md
+```
+Read prompts/02_frontend_agent.md for your instructions and read design.md
+as your context. Follow the instructions and save your complete output to
+frontend_output.md. Then run: python3 scripts/extract_files.py frontend_output.md
 ```
 
-- Runs the extractor:
+- While agent runs, explains the pattern: "The prompt tells Claude which instruction file to read and which context file to use. Claude reads both, generates all the React source, saves the output, and runs the extractor — one prompt does all three steps."
+- After completion, shows the extracted files:
 
 ```bash
-python3 ~/Documents/course-ai-agents/scripts/extract_files.py frontend_output.md
-```
-
-- Shows the resulting files:
-
-```bash
-find frontend/ -type f | sort
+! find frontend/ -type f | sort
 ```
 
 - Opens one component in VS Code
 
 **What Students Do:**
-- Note the three-step sequence: run agent → run extractor → inspect output
-- Write down the `$(cat design.md)` pattern — they will use it in Exercise 2
-- Note the `// FILE:` comment format
+- Note the prompt pattern: instruction file + context file + output file + extract command
+- Note that `// FILE:` comments in the raw output are what the extractor uses to know where to write each file
+- Write down one question about the generated components to ask during the exercise debrief
 
 **Facilitation Tips:**
-Write `$(cat design.md)` on the board in large text and leave it there for the rest of the session — it is the step students most often get wrong. On Windows non-WSL, command substitution does not work in PowerShell or CMD; those students must use WSL2.
+The prompt-based approach works on all platforms — no shell substitution syntax to debug. Emphasize that `design.md` is the context, not another prompt — Claude reads it to understand what the frontend must implement. A very short `frontend_output.md` (under 50 lines) means `design.md` was malformed; have students re-run the design agent first.
 
 **Transition:** Run the same sequence on your own project.
 
@@ -468,34 +470,35 @@ Write `$(cat design.md)` on the board in large text and leave it there for the r
 **Learning Objective:** Execute the frontend agent and extract React source files into `frontend/` for your project.
 
 **What the Instructor Does:**
-- Posts the command on the projector:
+- Posts the steps on the projector:
 
 ```bash
-# Mac / Linux
+# 1. Make sure you're in your project folder with Claude Code open
 cd ~/cs-agents/my-project
-claude -p "$(cat ~/Documents/course-ai-agents/prompts/02_frontend_agent.md)" \
-  --context "$(cat design.md)" > frontend_output.md
-
-python3 ~/Documents/course-ai-agents/scripts/extract_files.py frontend_output.md
-
-# Verify
-find frontend/ -type f | sort
-cat frontend/src/services/api.js | head -20
-
-# Windows (PowerShell)
-$p = Get-Content ~\Documents\course-ai-agents\prompts\02_frontend_agent.md -Raw
-$c = Get-Content design.md -Raw
-claude -p $p --context $c | Out-File -Encoding utf8 frontend_output.md
-python ~\Documents\course-ai-agents\scripts\extract_files.py frontend_output.md
+claude
 ```
 
-- After agent runs, checks that extractor is being run before students move on
+```
+# 2. Inside Claude Code — paste this prompt
+Read prompts/02_frontend_agent.md for your instructions and read design.md
+as your context. Follow the instructions and save your complete output to
+frontend_output.md. Then run: python3 scripts/extract_files.py frontend_output.md
+```
+
+```bash
+# 3. Verify from within Claude Code (or terminal)
+! find frontend/ -type f | sort
+```
+
+- After Claude finishes, confirms `frontend/src/` directory exists before students continue
 
 **What Students Do:**
-- Run the agent, then extract, then verify `frontend/src/` exists
+- Open Claude Code in their project folder (same session from design agent is fine)
+- Paste the prompt — Claude reads both files and runs the extractor automatically
+- Verify `frontend/src/` exists; keep `frontend_output.md` on disk — agent 04 reads it
 
 **Facilitation Tips:**
-Students who copy from a chat app may have smart quotes causing shell syntax errors — train them to type from the projector. A very short `frontend_output.md` (under 50 lines) usually means `design.md` was malformed; have them re-run the design agent first. The `frontend_output.md` raw file must stay on disk — agent 04 reads it.
+Students can stay in the same Claude Code session for all four agents — no need to re-open. A very short `frontend_output.md` (under 50 lines) means `design.md` was malformed; have them re-run the design agent first.
 
 **Transition:** Your frontend is ready — repeat the same pattern for the backend.
 
@@ -508,24 +511,26 @@ Students who copy from a chat app may have smart quotes causing shell syntax err
 **Learning Objective:** Observe the backend agent workflow producing a `backend/` directory with server source files.
 
 **What the Instructor Does:**
-- Runs the backend agent on the demo project:
+- Continues in the same Claude Code session (or re-opens in demo-project):
 
-```bash
-cd ~/cs-agents/demo-project
-claude -p "$(cat ~/Documents/course-ai-agents/prompts/03_backend_agent.md)" \
-  --context "$(cat design.md)" > backend_output.md
-
-python3 ~/Documents/course-ai-agents/scripts/extract_files.py backend_output.md
-
-find backend/ -type f | sort
-head -50 backend/src/main/kotlin/com/app/routes/RecipesRoutes.kt  # adjust filename to match output
+```
+# Inside Claude Code — paste this prompt
+Read prompts/03_backend_agent.md for your instructions and read design.md
+as your context. Follow the instructions and save your complete output to
+backend_output.md. Then run: python3 scripts/extract_files.py backend_output.md
 ```
 
-- Shows that endpoint paths in the generated route file match `design.md`'s API Spec
+- After Claude finishes, shows the extracted Kotlin files:
+
+```bash
+! find backend/ -name "*.kt" | sort
+```
+
+- Opens a route file and shows that endpoint paths match `design.md`'s API Spec
 
 **What Students Do:**
-- Note the structural similarity to the frontend agent workflow (same three steps)
-- Note that the Kotlin backend is in `backend/src/main/kotlin/` — a standard Gradle project layout
+- Notice this is the exact same prompt pattern as agent 02 — only the instruction file and output file names change
+- Note that the Kotlin backend lives in `backend/src/main/kotlin/` — standard Gradle project layout
 
 **Facilitation Tips:**
 The most common backend agent issue is generating routes with a different base path than the frontend calls; the review agent catches this. Keep the demo tight — 8 minutes goes fast.
@@ -541,33 +546,27 @@ The most common backend agent issue is generating routes with a different base p
 **Learning Objective:** Execute the backend agent and extract server source files into `backend/` for your project.
 
 **What the Instructor Does:**
-- Posts the command:
+- Posts the steps on the projector:
+
+```
+# Inside Claude Code — paste this prompt (same session is fine)
+Read prompts/03_backend_agent.md for your instructions and read design.md
+as your context. Follow the instructions and save your complete output to
+backend_output.md. Then run: python3 scripts/extract_files.py backend_output.md
+```
 
 ```bash
-# Mac / Linux
-cd ~/cs-agents/my-project
-claude -p "$(cat ~/Documents/course-ai-agents/prompts/03_backend_agent.md)" \
-  --context "$(cat design.md)" > backend_output.md
-
-python3 ~/Documents/course-ai-agents/scripts/extract_files.py backend_output.md
-
-# Verify
-grep "3001" backend/src/main/kotlin/com/app/Application.kt
-grep "sqlite" backend/build.gradle.kts
-
-# Windows (PowerShell)
-$p = Get-Content ~\Documents\course-ai-agents\prompts\03_backend_agent.md -Raw
-$c = Get-Content design.md -Raw
-claude -p $p --context $c | Out-File -Encoding utf8 backend_output.md
-python ~\Documents\course-ai-agents\scripts\extract_files.py backend_output.md
+# Verify from within Claude Code
+! find backend/ -name "*.kt" | sort
+! grep "3001" backend/src/main/kotlin/com/app/Application.kt
 ```
 
 **What Students Do:**
-- Run the agent, extract, then run both grep verify commands
+- Paste the prompt — same pattern as agent 02, just different file names
 - Keep `backend_output.md` on disk — agent 04 reads it
 
 **Facilitation Tips:**
-If `grep "3001" backend/src/main/kotlin/com/app/Application.kt` returns nothing, open `Application.kt` and check the port — this is a teachable moment about targeted manual fixes. On first run, `./gradlew run` downloads Gradle dependencies which can take 1–2 minutes; warn students ahead of time.
+If the grep for `3001` returns nothing, ask Claude to open `Application.kt` and fix the port. On first run, `./gradlew run` downloads Gradle dependencies which can take 1–2 minutes; warn students ahead of time.
 
 **Transition:** Frontend and backend are ready — let's start both servers and see the app in a browser.
 
@@ -619,24 +618,25 @@ Most common failure: CORS error because the frontend is calling a URL that doesn
 **Learning Objective:** Run the review agent and interpret REVIEW.md as a structured quality check.
 
 **What the Instructor Does:**
-- Runs the review agent on the demo project:
+- Continues in the same Claude Code session:
+
+```
+# Inside Claude Code — paste this prompt
+Read prompts/04_review_agent.md for your instructions. Use design.md,
+frontend_output.md, and backend_output.md as your context. Follow the
+instructions and save your complete output to REVIEW.md.
+```
 
 ```bash
-cd ~/cs-agents/demo-project
-claude -p "$(cat ~/Documents/course-ai-agents/prompts/04_review_agent.md)" \
-  --context "$(printf '# DESIGN\n'; cat design.md; \
-               printf '\n\n# FRONTEND\n'; cat frontend_output.md; \
-               printf '\n\n# BACKEND\n'; cat backend_output.md)" \
-  > REVIEW.md
-
-grep "^## " REVIEW.md
+# Show section headers after Claude finishes
+! grep "^## " REVIEW.md
 ```
 
 - Points out the verdict and explains GREEN / YELLOW / RED in a professional context
 - Highlights one or two issues the agent found
 
 **What Students Do:**
-- Run the review agent on their project (same command, their files are already in place)
+- Paste the same prompt in their Claude Code session — all four files are already in their project folder
 - Read their REVIEW.md and identify their verdict
 - Note one Critical or Warning issue to discuss with a neighbor
 
